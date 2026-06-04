@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Shalom — Cocina</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1A1A1A; --card: #252525; --card2: #2E2E2E;
+    --green: #1D9E75; --green-light: rgba(29,158,117,0.15);
+    --text: #F0EFE8; --muted: #777; --border: rgba(255,255,255,0.08);
+    --red: #E24B4A; --red-light: rgba(226,75,74,0.15);
+    --orange: #E8943A; --orange-light: rgba(232,148,58,0.15);
+    --r: 12px; --rs: 8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+  .app { display: flex; flex-direction: column; height: 100%; height: -webkit-fill-available; }
+
+  .topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .topbar h1 { font-size: 15px; font-weight: 600; flex: 1; }
+  .logo-pill { background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .pend-count { background: var(--red); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .btn-dia { background: none; border: 1px solid var(--red); border-radius: 8px; color: var(--red); font-size: 11px; font-weight: 600; padding: 4px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  .refresh-bar { background: var(--card2); border-bottom: 1px solid var(--border); padding: 7px 16px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .refresh-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .refresh-btn-small { margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; padding: 4px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  .tab-bar { display: grid; grid-template-columns: 1fr 1fr; background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .tab { padding: 12px; text-align: center; font-size: 13px; font-weight: 500; color: var(--muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-family: 'DM Sans', sans-serif; }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 600; }
+
+  .orders-list { flex: 1; overflow-y: auto; padding: 10px 12px; -webkit-overflow-scrolling: touch; min-height: 0; }
+
+  /* TARJETA PEDIDO */
+  .order-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 13px; margin-bottom: 10px; }
+  .order-card.pendiente { border-left: 3px solid var(--green); }
+  .order-card.parcial { border-left: 3px solid var(--orange); }
+  .order-card.done { opacity: 0.4; border-left: 3px solid var(--muted); }
+
+  .order-head { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+  .order-num { background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+  .order-client { font-size: 14px; font-weight: 600; flex: 1; }
+  .order-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+  /* ITEMS INDIVIDUALES */
+  .items-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 11px; }
+  .item-row { display: flex; align-items: center; gap: 8px; background: var(--card2); border-radius: var(--rs); padding: 8px 10px; }
+  .item-row.entregado { opacity: 0.5; }
+  .item-text { flex: 1; font-size: 13px; line-height: 1.4; }
+  .item-text.tachado { text-decoration: line-through; color: var(--muted); }
+  .item-reemplazo { font-size: 12px; color: var(--orange); margin-top: 3px; }
+  .item-price { font-size: 13px; font-weight: 600; color: var(--green); flex-shrink: 0; margin-right: 4px; }
+  .item-price.tachado { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+
+  .btn-tick { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--green); background: none; color: var(--green); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .btn-tick.done { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-edit { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--muted); background: none; color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .btn-edit:disabled { opacity: 0.3; cursor: default; }
+
+  /* TOTAL Y ACCIONES */
+  .order-footer { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .order-total { font-size: 14px; font-weight: 600; flex: 1; }
+  .btn-reabrir-small { background: var(--orange-light); border: 1px solid var(--orange); border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: var(--orange); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  .empty-msg { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+  .empty-icon { font-size: 38px; display: block; margin-bottom: 10px; }
+  .spinner-wrap { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+  .spinner { width: 26px; height: 26px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* MODAL EDITAR ITEM */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 50; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card2); border-radius: 20px 20px 0 0; padding: 22px 18px calc(22px + var(--safe-bottom)); width: 100%; }
+  .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .modal .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .modal label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 5px; margin-top: 12px; }
+  .modal input { width: 100%; border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); outline: none; }
+  .modal input:focus { border-color: var(--green); }
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: var(--rs); padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .btn-confirmar { background: var(--green); border: none; border-radius: var(--rs); padding: 12px; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  /* MODAL CERRAR DÍA */
+  .modal-center { align-items: center; justify-content: center; padding: 20px; }
+  .modal-box { background: var(--card2); border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 340px; }
+  .modal-box h2 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .modal-box p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .btn-cerrar-dia { background: var(--red); border: none; border-radius: var(--rs); padding: 12px; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  #toast { position: fixed; bottom: calc(16px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 24px; font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="logo-pill">SH82</span>
+    <h1>Cocina</h1>
+    <span class="pend-count" id="pend-count" style="display:none;">0</span>
+    <button class="btn-dia" onclick="abrirModalDia()">Cerrar día</button>
+  </div>
+  <div class="refresh-bar">
+    <span class="refresh-dot"></span>
+    <span id="refresh-label">Conectando...</span>
+    <button class="refresh-btn-small" onclick="loadOrders(true)">🔄 Actualizar</button>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" id="tab-pend" onclick="switchTab('Pendiente')">🕐 Pendientes</button>
+    <button class="tab" id="tab-done" onclick="switchTab('Completado')">✅ Completados</button>
+  </div>
+  <div class="orders-list" id="orders-list">
+    <div class="spinner-wrap"><div class="spinner"></div>Cargando pedidos...</div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR ITEM -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <h2>✏️ Editar producto</h2>
+    <div class="modal-sub" id="edit-original-label">Original: —</div>
+    <label>Nuevo nombre del producto</label>
+    <input id="edit-nombre" placeholder="Ej: Papa Francisco" />
+    <label>Nuevo precio (Bs)</label>
+    <input id="edit-precio" type="number" placeholder="Ej: 10" />
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModalEdit()">Cancelar</button>
+      <button class="btn-confirmar" onclick="confirmarEdicion()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CERRAR DÍA -->
+<div class="modal-overlay modal-center" id="modal-dia">
+  <div class="modal-box">
+    <h2>📅 Cerrar el día</h2>
+    <p>Los pedidos de hoy se guardarán en una hoja separada con la fecha de hoy. La hoja <strong>HOY</strong> quedará vacía para el nuevo día.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModalDia()">Cancelar</button>
+      <button class="btn-cerrar-dia" id="btn-confirmar-dia" onclick="cerrarDia()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_SWEGDqpE5MFn4J_thnWDhidGkBJSsAmjSOREv-fT2wjALa9pyzQdVhH-xrcKRyQ/exec';
+
+let allOrders = [];
+let currentTab = 'Pendiente';
+// Estado local de items (ticks y ediciones) — clave: "pedidoRow_itemIndex"
+let itemStates = JSON.parse(localStorage.getItem('sh82_itemStates') || '{}');
+
+// Edición en progreso
+let editTarget = null; // {orderRow, itemIndex, originalNombre, originalPrecio}
+
+function saveItemStates() {
+  localStorage.setItem('sh82_itemStates', JSON.stringify(itemStates));
+}
+
+function jsonp(url, cb) {
+  const name = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+  const s = document.createElement('script');
+  const timer = setTimeout(function() {
+    if (window[name]) { delete window[name]; try{document.head.removeChild(s);}catch(e){} cb(null,'timeout'); }
+  }, 10000);
+  window[name] = function(d) {
+    clearTimeout(timer); delete window[name]; try{document.head.removeChild(s);}catch(e){} cb(d,null);
+  };
+  s.onerror = function() {
+    clearTimeout(timer); delete window[name]; try{document.head.removeChild(s);}catch(e){} cb(null,'error');
+  };
+  s.src = url + (url.indexOf('?')>=0?'&':'?') + 'callback=' + name + '&_t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+function loadOrders(showToast) {
+  jsonp(SCRIPT_URL + '?action=getPedidos', function(data, err) {
+    if (err || !data) {
+      document.getElementById('refresh-label').textContent = 'Error de conexión';
+      document.getElementById('orders-list').innerHTML =
+        '<div class="empty-msg"><span class="empty-icon">⚠️</span>No se pudo conectar.<br>Verifica tu internet.</div>';
+      return;
+    }
+    allOrders = Array.isArray(data) ? data : [];
+    renderOrders();
+    updatePendCount();
+    const hora = new Date().toLocaleTimeString('es-BO', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('refresh-label').textContent = 'Actualizado a las ' + hora;
+    if (showToast) toast('🔄 Actualizados');
+  });
+}
+
+// Parsear items de un pedido (vienen como "2x Burguer - 30 Bs | 1x Café - 10 Bs")
+function parsearItems(itemsStr) {
+  return itemsStr.split(' | ').map(function(s) {
+    s = s.trim();
+    // formato: "Nx Nombre - P Bs"
+    const matchPrecio = s.match(/^(.+)\s-\s(\d+)\sBs$/);
+    if (matchPrecio) {
+      return { texto: matchPrecio[1].trim(), precio: parseInt(matchPrecio[2]) };
+    }
+    return { texto: s, precio: 0 };
+  });
+}
+
+function getItemKey(orderRow, itemIndex) {
+  return orderRow + '_' + itemIndex;
+}
+
+function toggleTick(orderRow, itemIndex) {
+  const key = getItemKey(orderRow, itemIndex);
+  if (!itemStates[key]) itemStates[key] = {};
+  itemStates[key].entregado = !itemStates[key].entregado;
+  saveItemStates();
+
+  // Verificar si todos los items están entregados → completar pedido automáticamente
+  const order = allOrders.find(function(o) { return o.row === orderRow; });
+  if (order) {
+    const items = parsearItems(order.items);
+    const todosEntregados = items.every(function(_, i) {
+      const k = getItemKey(orderRow, i);
+      return itemStates[k] && itemStates[k].entregado;
+    });
+    if (todosEntregados && order.estado === 'Pendiente') {
+      // Marcar como completado en Sheets
+      jsonp(SCRIPT_URL + '?action=completar&row=' + orderRow, function() {});
+      order.estado = 'Completado';
+      toast('✅ Pedido #' + order.pedido + ' completado');
+    }
+  }
+  renderOrders();
+  updatePendCount();
+}
+
+function abrirModalEdit(orderRow, itemIndex, textoOriginal, precioOriginal) {
+  editTarget = { orderRow: orderRow, itemIndex: itemIndex, textoOriginal: textoOriginal, precioOriginal: precioOriginal };
+  document.getElementById('edit-original-label').textContent = 'Original: ' + textoOriginal + ' — ' + precioOriginal + ' Bs';
+  document.getElementById('edit-nombre').value = '';
+  document.getElementById('edit-precio').value = '';
+  document.getElementById('modal-edit').classList.add('open');
+}
+function cerrarModalEdit() {
+  editTarget = null;
+  document.getElementById('modal-edit').classList.remove('open');
+}
+
+function confirmarEdicion() {
+  if (!editTarget) return;
+  const nuevoNombre = document.getElementById('edit-nombre').value.trim();
+  const nuevoPrecio = parseInt(document.getElementById('edit-precio').value);
+  if (!nuevoNombre) { toast('⚠️ Escribe el nombre del producto'); return; }
+  if (isNaN(nuevoPrecio) || nuevoPrecio < 0) { toast('⚠️ Escribe un precio válido'); return; }
+
+  const key = getItemKey(editTarget.orderRow, editTarget.itemIndex);
+  if (!itemStates[key]) itemStates[key] = {};
+  itemStates[key].reemplazo = { texto: nuevoNombre, precio: nuevoPrecio };
+  saveItemStates();
+
+  // Actualizar en Sheets
+  const order = allOrders.find(function(o) { return o.row === editTarget.orderRow; });
+  if (order) {
+    const items = parsearItems(order.items);
+    // Reconstruir items con el reemplazo
+    const nuevosItems = items.map(function(item, i) {
+      const k = getItemKey(editTarget.orderRow, i);
+      const state = itemStates[k] || {};
+      if (state.reemplazo) {
+        return state.reemplazo.texto + ' (editado, orig: ' + item.texto + ') - ' + state.reemplazo.precio + ' Bs';
+      }
+      return item.texto + ' - ' + item.precio + ' Bs';
+    });
+    // Calcular nuevo total
+    const nuevoTotal = calcularTotal(editTarget.orderRow, items);
+    const params = new URLSearchParams({
+      action: 'editarPedido',
+      row: editTarget.orderRow,
+      items: nuevosItems.join(' | '),
+      total: nuevoTotal
+    });
+    jsonp(SCRIPT_URL + '?' + params.toString(), function() {});
+  }
+
+  cerrarModalEdit();
+  renderOrders();
+  toast('✏️ Producto editado');
+}
+
+function calcularTotal(orderRow, items) {
+  let total = 0;
+  items.forEach(function(item, i) {
+    const key = getItemKey(orderRow, i);
+    const state = itemStates[key] || {};
+    if (state.reemplazo) {
+      total += state.reemplazo.precio;
+    } else {
+      total += item.precio;
+    }
+  });
+  return total;
+}
+
+function reabrirPedido(orderRow) {
+  // Limpiar ticks del pedido
+  const order = allOrders.find(function(o) { return o.row === orderRow; });
+  if (order) {
+    const items = parsearItems(order.items);
+    items.forEach(function(_, i) {
+      const key = getItemKey(orderRow, i);
+      if (itemStates[key]) itemStates[key].entregado = false;
+    });
+    saveItemStates();
+    order.estado = 'Pendiente';
+    jsonp(SCRIPT_URL + '?action=reabrir&row=' + orderRow, function() {});
+    renderOrders();
+    updatePendCount();
+    toast('↩️ Pedido reabierto');
+  }
+}
+
+function renderOrders() {
+  const list = document.getElementById('orders-list');
+  const filtered = allOrders.filter(function(o) { return o.estado === currentTab; });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-msg"><span class="empty-icon">' +
+      (currentTab === 'Pendiente' ? '🕐' : '✅') + '</span>' +
+      (currentTab === 'Pendiente' ? 'No hay pedidos pendientes' : 'No hay pedidos completados') +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(o) {
+    const items = parsearItems(o.items);
+    const todosTicados = items.every(function(_, i) {
+      const k = getItemKey(o.row, i);
+      return itemStates[k] && itemStates[k].entregado;
+    });
+    const algunoTicado = items.some(function(_, i) {
+      const k = getItemKey(o.row, i);
+      return itemStates[k] && itemStates[k].entregado;
+    });
+    const estadoClass = o.estado === 'Completado' ? 'done' : (algunoTicado ? 'parcial' : 'pendiente');
+    const totalReal = calcularTotal(o.row, items);
+    const hora = o.fecha ? (o.fecha.indexOf(',')>=0 ? o.fecha.split(',')[1].trim() : o.fecha) : '';
+
+    const itemsHTML = items.map(function(item, i) {
+      const key = getItemKey(o.row, i);
+      const state = itemStates[key] || {};
+      const entregado = !!state.entregado;
+      const reemplazo = state.reemplazo || null;
+
+      let contenido = '';
+      if (reemplazo) {
+        // Mostrar original tachado + reemplazo
+        contenido =
+          '<div>' +
+            '<span class="item-text tachado">' + item.texto + '</span>' +
+            '<span class="item-price tachado"> ' + item.precio + ' Bs</span>' +
+          '</div>' +
+          '<div class="item-reemplazo">↳ ' + reemplazo.texto + ' — ' + reemplazo.precio + ' Bs</div>';
+      } else {
+        contenido =
+          '<span class="item-text' + (entregado ? ' tachado' : '') + '">' + item.texto + '</span>' +
+          '<span class="item-price' + (entregado ? ' tachado' : '') + '"> ' + item.precio + ' Bs</span>';
+      }
+
+      const tickClass = entregado ? 'btn-tick done' : 'btn-tick';
+      const tickIcon = entregado ? '✓' : '○';
+      const editDisabled = entregado ? 'disabled' : '';
+
+      return '<div class="item-row' + (entregado ? ' entregado' : '') + '">' +
+        '<div style="flex:1">' + contenido + '</div>' +
+        '<button class="btn-edit" onclick="abrirModalEdit(' + o.row + ',' + i + ',\'' + item.texto.replace(/'/g,"\\'") + '\',' + item.precio + ')" ' + editDisabled + '>✏️</button>' +
+        '<button class="' + tickClass + '" onclick="toggleTick(' + o.row + ',' + i + ')">' + tickIcon + '</button>' +
+      '</div>';
+    }).join('');
+
+    const footerHTML = o.estado === 'Completado'
+      ? '<div class="order-footer"><span class="order-total">💰 Total: ' + totalReal + ' Bs</span>' +
+        '<button class="btn-reabrir-small" onclick="reabrirPedido(' + o.row + ')">↩️ Reabrir</button></div>'
+      : '<div class="order-footer"><span class="order-total">💰 Total: ' + totalReal + ' Bs</span></div>';
+
+    return '<div class="order-card ' + estadoClass + '">' +
+      '<div class="order-head">' +
+        '<span class="order-num">' + o.pedido + '</span>' +
+        '<span class="order-client">' + o.cliente + '</span>' +
+        '<span class="order-time">' + hora + '</span>' +
+      '</div>' +
+      '<div class="items-list">' + itemsHTML + '</div>' +
+      footerHTML +
+    '</div>';
+  }).join('');
+}
+
+function updatePendCount() {
+  var count = allOrders.filter(function(o) { return o.estado === 'Pendiente'; }).length;
+  var el = document.getElementById('pend-count');
+  el.textContent = count; el.style.display = count > 0 ? '' : 'none';
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-pend').classList.toggle('active', tab === 'Pendiente');
+  document.getElementById('tab-done').classList.toggle('active', tab === 'Completado');
+  renderOrders();
+}
+
+function abrirModalDia() { document.getElementById('modal-dia').classList.add('open'); }
+function cerrarModalDia() { document.getElementById('modal-dia').classList.remove('open'); }
+
+function cerrarDia() {
+  const btn = document.getElementById('btn-confirmar-dia');
+  btn.textContent = '⏳ Cerrando...'; btn.disabled = true;
+  jsonp(SCRIPT_URL + '?action=cerrarDia', function(data, err) {
+    btn.textContent = 'Confirmar'; btn.disabled = false;
+    cerrarModalDia();
+    if (err) { toast('⚠️ Error al cerrar el día'); return; }
+    allOrders = [];
+    itemStates = {};
+    saveItemStates();
+    renderOrders();
+    updatePendCount();
+    toast('📅 Día cerrado correctamente');
+  });
+}
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+loadOrders(false);
+setInterval(function() { loadOrders(false); }, 30000);
+document.addEventListener('visibilitychange', function() { if (!document.hidden) loadOrders(false); });
+</script>
+</body>
+</html>
