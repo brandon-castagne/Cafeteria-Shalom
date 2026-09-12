@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rol de Ingreso · Virgen de Guadalupe 2026</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:#FBF3E6;
+    color:#211533;
+    padding: 20px 16px 60px;
+  }
+  header{ max-width:640px; margin:0 auto 18px; }
+  h1{
+    font-size:1.4rem;
+    margin:0 0 4px;
+  }
+  header p{
+    margin:0;
+    color:#5a5169;
+    font-size:0.9rem;
+  }
+  .progress{
+    max-width:640px; margin:0 auto 16px;
+    font-size:0.85rem;
+    color:#2C7873;
+    font-weight:600;
+  }
+  ul{
+    max-width:640px;
+    margin:0 auto;
+    padding:0;
+    list-style:none;
+  }
+  li{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 10px;
+    border-bottom:1px solid #e4d8bd;
+  }
+  li input{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+    accent-color:#C6357F;
+  }
+  li .time{
+    font-variant-numeric:tabular-nums;
+    color:#5a5169;
+    font-size:0.85rem;
+    width:44px;
+    flex-shrink:0;
+  }
+  li .name{
+    flex:1;
+    font-size:0.98rem;
+  }
+  li.checked .name, li.checked .time{
+    text-decoration:line-through;
+    opacity:0.45;
+  }
+  .tag{
+    font-size:0.68rem;
+    color:#E0A428;
+    border:1px solid #E0A428;
+    padding:1px 7px;
+    border-radius:12px;
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Entrada Virgen de Guadalupe 2026</h1>
+  <p>Sábado 12 de septiembre — marca cada fraternidad al pasar</p>
+</header>
+<div class="progress" id="progress">0 / 65 marcadas</div>
+
+<ul id="list"></ul>
+
+<script>
+const schedule = [
+  {t:"09:00",name:"Comitiva",guest:false},
+  {t:"09:10",name:"Q'arapanzas",guest:false},
+  {t:"09:25",name:"Carnaval Chicheño – Renovación Chicheña",guest:true},
+  {t:"09:45",name:"Tinkuy Wuachacalla",guest:true},
+  {t:"10:05",name:"Flor de Quebracho",guest:true},
+  {t:"10:15",name:"Caporales Centralistas Sucre",guest:false},
+  {t:"10:35",name:"Wititis Munis",guest:false},
+  {t:"10:55",name:"Centro Cultural Th'anta Morenos",guest:false},
+  {t:"11:00",name:"Quellg'akamana Comunitario",guest:false},
+  {t:"11:10",name:"Morenada Fancesa",guest:false},
+  {t:"11:30",name:"Pujllay Nuevo Amanecer",guest:false},
+  {t:"11:45",name:"Sambos Caporales Bloque Churuquella",guest:false},
+  {t:"12:05",name:"Morenada Unión Comercial",guest:false},
+  {t:"12:25",name:"Tinkuy Sol de América",guest:false},
+  {t:"12:30",name:"Tobas Sucre",guest:false},
+  {t:"12:40",name:"Morenada Central",guest:false},
+  {t:"12:50",name:"Diablada Masis",guest:false},
+  {t:"12:55",name:"Caporales Zambos Z",guest:false},
+  {t:"13:00",name:"Tinkuy Santa Barbara",guest:false},
+  {t:"13:05",name:"Ballet Nostalgia Chaqueña",guest:false},
+  {t:"13:10",name:"Morenada Canto Sur",guest:false},
+  {t:"13:15",name:"Caporales Virgen de Guadalupe",guest:false},
+  {t:"13:25",name:"Tinkuy Atipay",guest:false},
+  {t:"13:45",name:"Caporales San Andrés",guest:false},
+  {t:"13:55",name:"Tobas Domingo Savio",guest:false},
+  {t:"14:00",name:"Caporales San Simón",guest:false},
+  {t:"14:20",name:"Salay Sucre",guest:false},
+  {t:"14:25",name:"Suris Sicuris Charcas",guest:false},
+  {t:"14:30",name:"Mineritos Ocuri",guest:false},
+  {t:"14:40",name:"Tinkuy Far-Bio",guest:false},
+  {t:"14:55",name:"Ballet Flor de Lapacho",guest:false},
+  {t:"15:00",name:"Kullawada Oruro Filial Sucre",guest:false},
+  {t:"15:10",name:"Ballet Encanto Chaqueño",guest:false},
+  {t:"15:20",name:"Morenada Fanáticos",guest:false},
+  {t:"15:40",name:"Caporales Cervecería Nacional Potosí C.N.P.",guest:false},
+  {t:"15:50",name:"Ballet Sin Fronteras",guest:false},
+  {t:"15:55",name:"Tinkuy Mosoj Charcas",guest:false},
+  {t:"16:05",name:"Tobas Virgen de Guadalupe",guest:false},
+  {t:"16:25",name:"Morenada Sensación Intocables",guest:false},
+  {t:"16:40",name:"Negritos Z",guest:false},
+  {t:"16:45",name:"Tobas Sud",guest:false},
+  {t:"16:50",name:"Caporales UMSA",guest:false},
+  {t:"17:00",name:"Ballet Renacer Chaqueño",guest:false},
+  {t:"17:10",name:"Tinkuy Ex Comedor",guest:false},
+  {t:"17:30",name:"Encanto Mojocoyano",guest:false},
+  {t:"17:50",name:"Ballet Madre Selva",guest:false},
+  {t:"17:55",name:"Comunidad Saya Afro Boliviana Sucre",guest:false},
+  {t:"18:05",name:"Morenada Revelación",guest:false},
+  {t:"18:15",name:"Llamerada Sucre",guest:false},
+  {t:"18:20",name:"Estampa Cinteña",guest:false},
+  {t:"18:40",name:"Rueda Chapaca Guadalquivir",guest:false},
+  {t:"18:55",name:"Navidad Zudañence",guest:false},
+  {t:"19:10",name:"Morenada Señorial Illimani",guest:false},
+  {t:"19:25",name:"Tinkuy Tolckas Sumaj Orcko",guest:false},
+  {t:"19:35",name:"Salay Bolivia Filial Sucre",guest:false},
+  {t:"19:40",name:"Coplas de Mojocoya",guest:false},
+  {t:"19:45",name:"100% Salay",guest:false},
+  {t:"19:50",name:"Salay Cochabamba Filial Sucre",guest:false},
+  {t:"19:55",name:"Tarqueada del Inisterio",guest:false},
+  {t:"20:00",name:"Potolos Jatq'as Sucre",guest:false},
+  {t:"20:05",name:"Ballet Nueva Pasión Sauceña",guest:false},
+  {t:"20:10",name:"Danza Ajaicito (San Lucas)",guest:true},
+  {t:"20:15",name:"Zapateo Yamparéño",guest:true},
+  {t:"20:20",name:"Sopachuymanta Kani",guest:true},
+  {t:"20:25",name:"Thanta Morenos Comunidad Arabate",guest:true},
+];
+
+const list = document.getElementById('list');
+const progress = document.getElementById('progress');
+
+schedule.forEach((item, i)=>{
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <input type="checkbox" id="c${i}">
+    <span class="time">${item.t}</span>
+    <span class="name">${item.name}</span>
+    ${item.guest ? '<span class="tag">Invitado</span>' : ''}
+  `;
+  list.appendChild(li);
+  const box = li.querySelector('input');
+  box.addEventListener('change', ()=>{
+    li.classList.toggle('checked', box.checked);
+    updateProgress();
+  });
+});
+
+function updateProgress(){
+  const checked = document.querySelectorAll('#list input:checked').length;
+  progress.textContent = `${checked} / ${schedule.length} marcadas`;
+}
+</script>
+
+</body>
+</html>
